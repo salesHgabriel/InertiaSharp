@@ -176,7 +176,14 @@ public class InertiaBaseController : Controller
 
 ## Development — Hot Reload
 
-Run both servers simultaneously:
+Run both servers simultaneously with app.UseViteDevelopmentServer():
+
+```csharp
+app.UseViteDevelopmentServer(); // always before app.Run()
+app.Run();
+```
+
+Or script .sh:
 
 ```bash
 # From repo root:
@@ -195,6 +202,9 @@ npm run dev
 cd sample/InertiaSharp.Sample
 dotnet watch run
 ```
+
+
+
 
 - **Vue changes** → instant hot module replacement (no page reload)
 - **C# changes** → `dotnet watch` restarts the backend, Inertia triggers a full page reload
@@ -374,18 +384,6 @@ authenticated
 | Grouped routes | Base controller + `[Route]` | `app.MapInertiaGroup(prefix)` |
 | Shared props | Inject `InertiaService` | Same — inject `InertiaService` |
 | Rendering engine | `InertiaPageRenderer` ✓ | `InertiaPageRenderer` ✓ (shared) |
-
-### Running the Minimal API sample
-
-```bash
-# Minimal API sample runs on port 5002
-./run-dev.sh minimal
-
-# Visit https://localhost:5002
-# Credentials: admin@demo.com / Password123!
-```
-
----
 
 ## Using React or Svelte instead of Vue
 
