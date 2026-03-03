@@ -1,0 +1,31 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <LangVersion>latest</LangVersion>
+    <RootNamespace>InertiaSharp.MinimalApi.Sample</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.AspNetCore.Identity.EntityFrameworkCore" Version="10.0.0-*" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite"              Version="10.0.0-*" />
+    <PackageReference Include="Microsoft.EntityFrameworkCore.Design"              Version="10.0.0-*">
+      <PrivateAssets>all</PrivateAssets>
+    </PackageReference>
+    <ProjectReference Include="..\..\src\InertiaSharp\InertiaSharp.csproj" />
+    <ProjectReference Include="..\InertiaSharp.Shared\InertiaSharp.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Migrations\" />
+    <Folder Include="wwwroot\" />
+  </ItemGroup>
+
+  <Target Name="PublishFrontend" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
+    <Exec WorkingDirectory="ClientApp" Command="npm ci" />
+    <Exec WorkingDirectory="ClientApp" Command="npm run build" />
+  </Target>
+
+</Project>

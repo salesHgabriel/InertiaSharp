@@ -1,0 +1,11 @@
+{
+  "src/app.ts": {
+    "file": "app.js",
+    "name": "app",
+    "src": "src/app.ts",
+    "isEntry": true,
+    "css": [
+      "app.css"
+    ]
+  }
+}

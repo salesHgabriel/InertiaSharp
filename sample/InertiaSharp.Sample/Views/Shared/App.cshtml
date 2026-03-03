@@ -1,0 +1,42 @@
+@using InertiaSharp.TagHelpers
+@using Microsoft.AspNetCore.Antiforgery
+@using Microsoft.AspNetCore.Hosting
+@inject IAntiforgery         AntiforgeryService
+@inject IWebHostEnvironment  HostEnv
+@addTagHelper *, InertiaSharp
+<!DOCTYPE html>
+<html lang="en" class="h-full">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>InertiaSharp MVC Demo</title>
+
+    @*
+      IAntiforgery is injected via @inject — never called as a static class.
+      The Vue app reads the token from this meta tag and sends it as
+      X-CSRF-TOKEN on every POST/PUT/DELETE request.
+    *@
+    <meta name="csrf-token" content="@AntiforgeryService.GetAndStoreTokens(Context).RequestToken" />
+    
+    
+    @if (HostEnv.IsDevelopment())
+    {
+        @* Vite dev server — full Hot Module Replacement for .vue files *@
+        <script type="module" src="http://localhost:5173/@@vite/client"></script>
+        <script type="module" src="http://localhost:5173/src/app.ts"></script>
+    }
+    else
+    {
+        @* Production: hashed assets built by `npm run build` into wwwroot/dist *@
+        <link rel="stylesheet" href="~/dist/app.css" asp-append-version="true" />
+        <script type="module" src="~/dist/app.js" asp-append-version="true"></script>
+    }
+</head>
+<body class="h-full bg-background font-sans antialiased">
+    @*
+      <inertia /> renders: <div id="app" data-page="{...json...}"></div>
+      Vue 3 mounts to this element.
+    *@
+    <inertia />
+</body>
+</html>
