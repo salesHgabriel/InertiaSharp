@@ -8,7 +8,7 @@
 
     <!-- NuGet package metadata -->
     <PackageId>InertiaSharp</PackageId>
-    <Version>1.0.0</Version>
+    <Version>1.1.1</Version>
     <Authors>Gabriel Sales</Authors>
     <Description>
       ASP.NET Core adapter for Inertia.js — build modern SPAs using Vue, React, or Svelte
@@ -16,7 +16,7 @@
     </Description>
     <PackageTags>inertia;inertiajs;aspnetcore;vue;react;svelte;spa</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
-    <RepositoryUrl>https://github.com/your-org/InertiaSharp</RepositoryUrl>
+    <RepositoryUrl>https://github.com/salesHgabriel/InertiaSharp</RepositoryUrl>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
   </PropertyGroup>
 

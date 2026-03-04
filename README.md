@@ -6,10 +6,12 @@
 
 ## What is InertiaSharp?
 
-InertiaSharp lets you build single-page applications using your **ASP.NET Core controllers** as the backend, while rendering your frontend in **Vue 3, React, or Svelte**. No REST API, no token auth, no separate frontend repo needed.
+InertiaSharp lets you build single-page applications using your **ASP.NET Core controllers or Minimal api** as the backend, while rendering your frontend in **Vue 3, React, or Svelte**. No REST API, no token auth, no separate frontend repo needed.
 
 ```
 Browser → ASP.NET Core Controller → return this.Inertia("Dashboard", props)
+or
+Browser → ASP.NET Core Minimal api → return Results.Extensions.Inertia("Dashboard", props); 
                                               ↓
                                First visit: full HTML page
                                Subsequent: JSON page object (XHR)
