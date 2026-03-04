@@ -18,17 +18,17 @@ jobs:
       - uses: actions/checkout@v4
       - name: Set Version 
         run: |
-          sed -i -e 's/1.1.1/${{github.ref_name}}/' ./src/src/InertiaSharp/InertiaSharp.csproj
+          sed -i -e 's/1.1.1/${{github.ref_name}}/' ./src/InertiaSharp/InertiaSharp.csproj
 
       - name: Restore 
-        run: dotnet restore ./src/src/InertiaSharp/InertiaSharp.csproj
+        run: dotnet restore ./src/InertiaSharp/InertiaSharp.csproj
 
       - name: Build 
-        run: dotnet build --no-restore  ./src/src/InertiaSharp/InertiaSharp.csproj
+        run: dotnet build --no-restore  ./src/InertiaSharp/InertiaSharp.csproj
 
       - name: Pack 
         run: |
-          dotnet pack ./src/src/InertiaSharp/InertiaSharp.csproj -c Release -o output-client
+          dotnet pack ./src/InertiaSharp/InertiaSharp.csproj -c Release -o output-client
 
 
       - name: Publish Client to Nuget.Org
