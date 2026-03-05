@@ -174,6 +174,19 @@ public class InertiaBaseController : Controller
 }
 ```
 
+### 6. Setup to publish in .csproj
+
+```csharp
+  <!--
+    This target runs `npm run build` before publishing.
+    During development, Vite dev server handles assets (hot reload).
+  -->
+  <Target Name="PublishFrontend" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
+    <Exec WorkingDirectory="ClientApp" Command="npm ci" />
+    <Exec WorkingDirectory="ClientApp" Command="npm run build" />
+  </Target>
+
+```
 ---
 
 ## Development — Hot Reload
