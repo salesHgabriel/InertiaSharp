@@ -26,9 +26,8 @@ jobs:
       - name: Clean
         run: dotnet clean
 
-#      TODO: ADD TESTS
-#      - name: Run Unit Tests Package
-#        run: dotnet test ./test/src/InertiaSharp/InertiaSharp.Tests.csproj
+      - name: Run Unit Tests Package
+        run: dotnet test ./tests/InertiaSharp.Test/InertiaSharp.Test.csproj
       
       
     
