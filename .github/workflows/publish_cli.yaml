@@ -1,0 +1,39 @@
+name: Publish CLI Tool
+
+on:
+  push:
+    tags:
+      - 'cli-*.*.**'
+
+jobs:
+  publish_cli_tool:
+    name: Publish InertiaSharp.Cli
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: 10.0.x
+
+      - uses: actions/checkout@v4
+
+      - name: Set Version
+        run: |
+          VERSION="${{github.ref_name}}"
+          VERSION="${VERSION#cli-}"
+          sed -i -e "s/1.1.1/$VERSION/" ./templates/src/InertiaSharp.Cli/InertiaSharp.Cli.csproj
+
+      - name: Restore
+        run: dotnet restore ./templates/src/InertiaSharp.Cli/InertiaSharp.Cli.csproj
+
+      - name: Build
+        run: dotnet build --no-restore ./templates/src/InertiaSharp.Cli/InertiaSharp.Cli.csproj
+
+      - name: Pack
+        run: |
+          dotnet pack ./templates/src/InertiaSharp.Cli/InertiaSharp.Cli.csproj -c Release -o output-cli
+
+      - name: Publish CLI to Nuget.Org
+        run: |
+          dotnet nuget push output-cli/*.nupkg -k ${{ secrets.NUGET_API_KEY_INERTIA_SHARP_CLI }} -s https://api.nuget.org/v3/index.json --skip-duplicate
