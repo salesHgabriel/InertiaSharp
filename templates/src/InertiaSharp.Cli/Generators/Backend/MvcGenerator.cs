@@ -555,19 +555,21 @@ public class ProfileController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Password([FromBody] ChangePasswordRequest req)
     {
+        var user   = await _users.GetUserAsync(User) ?? throw new InvalidOperationException();
+
         if (req.NewPassword != req.NewPasswordConfirmation)
             return this.Inertia("Profile/Edit", new
             {
+                user,
                 errors = new { newPasswordConfirmation = "Passwords do not match." }
             });
 
-        var user   = await _users.GetUserAsync(User) ?? throw new InvalidOperationException();
         var result = await _users.ChangePasswordAsync(user, req.CurrentPassword, req.NewPassword);
 
         if (!result.Succeeded)
         {
             var errors = result.Errors.ToDictionary(e => e.Code, e => e.Description);
-            return this.Inertia("Profile/Edit", new { errors });
+            return this.Inertia("Profile/Edit", new { user, errors });
         }
 
         TempData["_flash_success"] = "Password changed successfully.";
@@ -576,7 +578,7 @@ public class ProfileController : Controller
 
     [HttpPost("avatar")]
     [IgnoreAntiforgeryToken]
-    public async Task<IActionResult> Avatar(IFormFile? avatar)
+    public async Task<IActionResult> Avatar([FromForm] IFormFile? avatar)
     {
         if (avatar is null || avatar.Length == 0)
             return this.Inertia("Profile/Edit", new
