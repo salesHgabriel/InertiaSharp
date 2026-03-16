@@ -488,3 +488,4 @@ $RECYCLE.BIN/
 /sample/InertiaSharp.Sample/app.db
 /sample/InertiaSharp.Sample/app.db-shm
 /sample/InertiaSharp.Sample/app.db-wal
+/.claude/
