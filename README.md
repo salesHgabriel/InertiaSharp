@@ -441,6 +441,90 @@ createInertiaApp({
 
 ---
 
+## CLI — Project Scaffolding (`inertiasharp`)
+
+InertiaSharp ships an **interactive CLI tool** (`InertiaSharp.Cli`) that scaffolds full starter projects in seconds. It is distributed as a .NET global tool under the command name `inertiasharp`.
+
+### Install
+
+```bash
+dotnet tool install -g InertiaSharp.Cli
+```
+
+### Usage
+
+```bash
+inertiasharp [project-name]
+inertiasharp --help
+inertiasharp --version
+```
+
+If you omit the project name, the wizard will ask for it interactively.
+
+### Interactive wizard
+
+Running `inertiasharp` (or `inertiasharp MyApp`) opens a step-by-step prompt:
+
+| Step | Options |
+|------|---------|
+| **API style** | MVC Controllers · Minimal API |
+| **Database** | SQLite · PostgreSQL · SQL Server |
+| **Frontend** | Vue 3 + Reka UI (shadcn-vue) · React + shadcn/ui · Svelte + shadcn-svelte |
+| **Auth** | ASP.NET Core Identity (login, register, profile, roles) · Simple home page with a DB query |
+
+After confirming, the CLI:
+
+1. Generates the full ASP.NET Core project (`.csproj`, `Program.cs`, controllers / endpoints, EF Core context, shell Razor view, `appsettings.json`, `run-dev.sh`, `.gitignore`).
+2. Generates the frontend (`ClientApp/`) configured for the chosen framework and Vite.
+3. Runs `npm install` inside `ClientApp/`.
+4. Runs `dotnet restore` in the project root.
+
+### What gets generated
+
+```
+MyApp/
+├── MyApp.csproj
+├── Program.cs
+├── appsettings.json
+├── run-dev.sh                  # starts both Vite dev server and dotnet watch
+├── Controllers/                # (MVC style only)
+│   ├── HomeController.cs
+│   ├── AuthController.cs       # (with auth)
+│   ├── DashboardController.cs  # (with auth)
+│   ├── ProfileController.cs    # (with auth)
+│   └── AdminController.cs      # (with auth)
+├── Models/
+├── Data/AppDbContext.cs
+├── Permissions/                # Roles + Policies (with auth)
+├── Contracts/                  # Request DTOs  (with auth)
+├── Views/Shared/App.cshtml     # Inertia shell
+├── wwwroot/
+├── Migrations/
+└── ClientApp/                  # Vite + Vue / React / Svelte
+    └── src/
+        ├── app.ts (or .tsx)
+        ├── Pages/
+        └── Layouts/
+```
+
+### Next steps after scaffolding
+
+```bash
+cd MyApp
+bash run-dev.sh
+```
+
+If you included auth, run migrations on first start (applied automatically):
+
+```bash
+dotnet ef migrations add InitialCreate
+# migrations are auto-applied on startup
+```
+
+Demo credentials (auth template): `admin@demo.com` / `Password123!`
+
+---
+
 ## License
 
 MIT
