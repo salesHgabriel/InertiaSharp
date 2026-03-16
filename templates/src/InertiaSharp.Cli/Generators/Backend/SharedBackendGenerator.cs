@@ -49,6 +49,19 @@ public static class SharedBackendGenerator
             _ => "ts"
         };
 
+        // React Fast Refresh requires a preamble script in the HTML.
+        // @vitejs/plugin-react injects it automatically when Vite serves the HTML,
+        // but here ASP.NET Core serves the HTML, so we must add it manually.
+        var reactPreamble = opts.Frontend == Frontend.React
+            ? $"\n        <script type=\"module\">\n" +
+              $"            import RefreshRuntime from 'http://localhost:{vitePort}/@@react-refresh'\n" +
+              $"            RefreshRuntime.injectIntoGlobalHook(window)\n" +
+              $"            window.$RefreshReg$ = () => {{}}\n" +
+              $"            window.$RefreshSig$ = () => (type) => type\n" +
+              $"            window.__vite_plugin_react_preamble_installed__ = true\n" +
+              $"        </script>"
+            : string.Empty;
+
         return $$"""
 @using InertiaSharp.TagHelpers
 @using Microsoft.AspNetCore.Antiforgery
@@ -66,7 +79,7 @@ public static class SharedBackendGenerator
 
     @if (HostEnv.IsDevelopment())
     {
-        <script type="module" src="http://localhost:{{vitePort}}/@@vite/client"></script>
+        <script type="module" src="http://localhost:{{vitePort}}/@@vite/client"></script>{{reactPreamble}}
         <script type="module" src="http://localhost:{{vitePort}}/src/app.{{entryExt}}"></script>
     }
     else
