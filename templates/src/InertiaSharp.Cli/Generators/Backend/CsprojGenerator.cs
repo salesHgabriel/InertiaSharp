@@ -1,11 +1,16 @@
+using System.Text.Json;
 using InertiaSharp.Cli.Models;
 
 namespace InertiaSharp.Cli.Generators.Backend;
 
 public static class CsprojGenerator
 {
-    public static string Generate(ProjectOptions opts)
-    {
+  private static readonly HttpClient Http = new();
+
+  public static string Generate(ProjectOptions opts)
+  {
+      string lastVersionInertiaSharp = GetLatestVersion().Result ?? throw new Exception("No version available");
+      
         var dbPackage = opts.Database switch
         {
             Database.Sqlite     => """<PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="10.0.0-*" />""",
@@ -32,7 +37,7 @@ public static class CsprojGenerator
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="InertiaSharp" Version="1.1.1" />
+    <PackageReference Include="InertiaSharp" Version="{lastVersionInertiaSharp}" />
     <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="10.0.0-*">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
@@ -61,4 +66,17 @@ public static class CsprojGenerator
 </Project>
 """;
     }
+  
+  public static async Task<string?> GetLatestVersion(string package = "inertiasharp")
+  {
+    var url = $"https://api.nuget.org/v3-flatcontainer/{package.ToLower()}/index.json";
+
+    var json = await Http.GetStringAsync(url);
+
+    using var doc = JsonDocument.Parse(json);
+    var versions = doc.RootElement.GetProperty("versions");
+
+    return versions[versions.GetArrayLength() - 1].GetString();
+  }
+    
 }
