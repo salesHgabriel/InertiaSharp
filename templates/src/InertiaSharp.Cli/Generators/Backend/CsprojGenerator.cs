@@ -1,15 +1,14 @@
 using System.Text.Json;
 using InertiaSharp.Cli.Models;
+using InertiaSharp.Cli.Wizard;
 
 namespace InertiaSharp.Cli.Generators.Backend;
 
 public static class CsprojGenerator
 {
-  private static readonly HttpClient Http = new();
-
   public static string Generate(ProjectOptions opts)
   {
-      string lastVersionInertiaSharp = GetLatestVersion().Result ?? throw new Exception("No version available");
+      string lastVersionInertiaSharp = ProjectService.GetLatestVersionAsync().Result;
       
         var dbPackage = opts.Database switch
         {
@@ -67,16 +66,4 @@ public static class CsprojGenerator
 """;
     }
   
-  public static async Task<string?> GetLatestVersion(string package = "inertiasharp")
-  {
-    var url = $"https://api.nuget.org/v3-flatcontainer/{package.ToLower()}/index.json";
-
-    var json = await Http.GetStringAsync(url);
-
-    using var doc = JsonDocument.Parse(json);
-    var versions = doc.RootElement.GetProperty("versions");
-
-    return versions[versions.GetArrayLength() - 1].GetString();
-  }
-    
 }
