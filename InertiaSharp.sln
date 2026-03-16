@@ -10,11 +10,11 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InertiaSharp.MinimalApi.Sam
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "SolutionFolder", "SolutionFolder", "{B58D3F58-4DE2-4410-BAAD-A11D198216EB}"
 	ProjectSection(SolutionItems) = preProject
-		run-dev.sh = run-dev.sh
 		README.md = README.md
-		LICENSE = LICENSE
 		.github\workflows\build_and_test.yaml = .github\workflows\build_and_test.yaml
 		.github\workflows\publish.yaml = .github\workflows\publish.yaml
+		.github\workflows\build_and_test_cli.yaml = .github\workflows\build_and_test_cli.yaml
+		.github\workflows\publish_cli.yaml = .github\workflows\publish_cli.yaml
 	EndProjectSection
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "InertiaSharp.Shared", "sample\InertiaSharp.Shared\InertiaSharp.Shared.csproj", "{6B784DC2-8080-4D61-8C60-75DC52E828CA}"

@@ -241,6 +241,7 @@ export default {
 
     private static string AppTs(ProjectOptions opts) => $$"""
 import './assets/app.css'
+import { mount } from 'svelte'
 import { createInertiaApp } from '@inertiajs/svelte'
 import AppLayout from './layouts/AppLayout.svelte'
 
@@ -258,7 +259,7 @@ createInertiaApp({
   title: (title) => (title ? `${title} – {{opts.ProjectName}}` : '{{opts.ProjectName}}'),
 
   setup({ el, App, props }) {
-    new App({ target: el, props })
+    mount(App, { target: el, props })
   },
 
   progress: {

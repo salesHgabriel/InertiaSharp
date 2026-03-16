@@ -83,6 +83,9 @@ public static class ProjectGenerator
         WriteFile(root, "appsettings.json",             SharedBackendGenerator.AppSettings(opts));
         WriteFile(root, "appsettings.Development.json", SharedBackendGenerator.AppSettingsDev(opts));
 
+        // launchSettings
+        WriteFile(root, "Properties/launchSettings.json", SharedBackendGenerator.LaunchSettings());
+
         // Shell Razor view
         WriteFile(root, "Views/Shared/App.cshtml", SharedBackendGenerator.AppCshtml(opts));
 

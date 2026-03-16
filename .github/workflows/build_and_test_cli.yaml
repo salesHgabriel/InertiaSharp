@@ -1,0 +1,22 @@
+name: Build and Tests CLI
+
+on: pull_request
+
+jobs:
+  build_cli:
+    name: Build InertiaSharp.Cli
+    runs-on: ubuntu-latest
+    steps:
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v2
+        with:
+          dotnet-version: 10.0.x
+
+      - uses: actions/checkout@v4
+
+      - name: Restore Package
+        run: dotnet restore ./templates/src/InertiaSharp.Cli/InertiaSharp.Cli.csproj
+
+      - name: Build Package
+        run: dotnet build --no-restore ./templates/src/InertiaSharp.Cli/InertiaSharp.Cli.csproj

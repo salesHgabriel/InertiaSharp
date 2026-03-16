@@ -220,6 +220,31 @@ public record ChangePasswordRequest(
     string NewPasswordConfirmation);
 """;
 
+    // ── Properties/launchSettings.json ───────────────────────────────────────
+
+    public static string LaunchSettings() => """
+{
+  "$schema": "https://json.schemastore.org/launchsettings.json",
+  "profiles": {
+    "Development": {
+      "commandName": "Project",
+      "dotnetRunMessages": true,
+      "launchBrowser": false,
+      "applicationUrl": "https://localhost:5001;http://localhost:5000",
+      "environmentVariables": {
+        "ASPNETCORE_ENVIRONMENT": "Development"
+      }
+    },
+    "Docker": {
+      "commandName": "Docker",
+      "launchBrowser": true,
+      "launchUrl": "{Scheme}://{ServiceHost}:{ServicePort}",
+      "publishAllPorts": true
+    }
+  }
+}
+""";
+
     // ── run-dev.sh ────────────────────────────────────────────────────────────
 
     public static string RunDevScript(ProjectOptions opts) => $$"""
