@@ -11,7 +11,9 @@ if (args.Length > 0 && (args[0] is "--help" or "-h"))
 
 if (args.Length > 0 && (args[0] is "--version" or "-v"))
 {
-    AnsiConsole.MarkupLine("[grey]InertiaSharp CLI[/] [white]1.0.0[/]");
+    var version = ProjectService.GetLatestVersionAsync(ProjectService.ProjectInertiaSharpCli).Result;
+
+    AnsiConsole.MarkupLine($"[grey]InertiaSharp CLI[/] [white]{version}[/]");
     return;
 }
 
