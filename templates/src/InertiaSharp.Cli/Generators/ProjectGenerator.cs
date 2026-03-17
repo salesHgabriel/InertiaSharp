@@ -56,7 +56,7 @@ public static class ProjectGenerator
         AnsiConsole.WriteLine();
         AnsiConsole.MarkupLine("[bold]Next steps:[/]");
         AnsiConsole.MarkupLine($"  [grey]cd[/] [white]{opts.ProjectName}[/]");
-        AnsiConsole.MarkupLine($"  [grey]bash[/] [white]run-dev.sh[/]");
+        AnsiConsole.MarkupLine($"  [grey]bash[/] [white]dotnet build[/]");
 
         if (opts.IncludeAuth)
         {
