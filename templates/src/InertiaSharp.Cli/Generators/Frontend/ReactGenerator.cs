@@ -34,18 +34,18 @@ public static class ReactGenerator
         {
             files["ClientApp/src/layouts/AppLayout.tsx"]    = AppLayout(opts);
             files["ClientApp/src/layouts/GuestLayout.tsx"]  = GuestLayout(opts);
-            files["ClientApp/src/pages/auth/Login.tsx"]     = LoginPage(opts);
-            files["ClientApp/src/pages/auth/Register.tsx"]  = RegisterPage(opts);
-            files["ClientApp/src/pages/Dashboard.tsx"]      = DashboardPage(opts);
-            files["ClientApp/src/pages/profile/Edit.tsx"]   = ProfileEditPage(opts);
-            files["ClientApp/src/pages/admin/Users.tsx"]    = AdminUsersPage(opts);
-            files["ClientApp/src/pages/errors/Forbidden.tsx"]   = ForbiddenPage();
-            files["ClientApp/src/pages/errors/ServerError.tsx"]  = ServerErrorPage();
+            files["ClientApp/src/Pages/Auth/Login.tsx"]     = LoginPage(opts);
+            files["ClientApp/src/Pages/Auth/Register.tsx"]  = RegisterPage(opts);
+            files["ClientApp/src/Pages/Dashboard.tsx"]      = DashboardPage(opts);
+            files["ClientApp/src/Pages/Profile/Edit.tsx"]   = ProfileEditPage(opts);
+            files["ClientApp/src/Pages/Admin/Users.tsx"]    = AdminUsersPage(opts);
+            files["ClientApp/src/Pages/Errors/Forbidden.tsx"]   = ForbiddenPage();
+            files["ClientApp/src/Pages/Errors/ServerError.tsx"]  = ServerErrorPage();
         }
         else
         {
             files["ClientApp/src/layouts/AppLayout.tsx"]  = SimpleAppLayout(opts);
-            files["ClientApp/src/pages/Home.tsx"]         = HomePage(opts);
+            files["ClientApp/src/Pages/Home.tsx"]         = HomePage(opts);
         }
 
         return files;
@@ -264,11 +264,11 @@ import AppLayout from './layouts/AppLayout'
 
 createInertiaApp({
   resolve: (name: string) => {
-    const pages = import.meta.glob('./pages/**/*.tsx', { eager: true }) as Record<string, { default: React.ComponentType }>
-    const page = pages[`./pages/${name}.tsx`]
+    const pages = import.meta.glob('./Pages/**/*.tsx', { eager: true }) as Record<string, { default: React.ComponentType }>
+    const page = pages[`./Pages/${name}.tsx`]
 
     if (!page)
-      throw new Error(`Inertia page not found: ./pages/${name}.tsx`)
+      throw new Error(`Inertia page not found: ./Pages/${name}.tsx`)
 
     if (!(page.default as any).layout)
       (page.default as any).layout = (page: React.ReactNode) => <AppLayout>{page}</AppLayout>
@@ -1173,6 +1173,9 @@ export default function ProfileEdit({ user, flash, errors }: Props) {
               <Label htmlFor="currentPassword">Current password</Label>
               <Input id="currentPassword" type="password" value={passwordForm.data.currentPassword}
                 onChange={e => passwordForm.setData('currentPassword', e.target.value)} />
+              {errors?.PasswordMismatch && (
+                <p className="text-sm text-destructive">{errors.PasswordMismatch}</p>
+              )}
             </div>
             <div className="space-y-2">
               <Label htmlFor="newPassword">New password</Label>

@@ -37,18 +37,18 @@ public static class SvelteGenerator
         {
             files["ClientApp/src/layouts/AppLayout.svelte"]          = AppLayout(opts);
             files["ClientApp/src/layouts/GuestLayout.svelte"]        = GuestLayout(opts);
-            files["ClientApp/src/pages/auth/Login.svelte"]           = LoginPage(opts);
-            files["ClientApp/src/pages/auth/Register.svelte"]        = RegisterPage(opts);
-            files["ClientApp/src/pages/Dashboard.svelte"]            = DashboardPage(opts);
-            files["ClientApp/src/pages/profile/Edit.svelte"]         = ProfileEditPage(opts);
-            files["ClientApp/src/pages/admin/Users.svelte"]          = AdminUsersPage(opts);
-            files["ClientApp/src/pages/errors/Forbidden.svelte"]     = ForbiddenPage();
-            files["ClientApp/src/pages/errors/ServerError.svelte"]   = ServerErrorPage();
+            files["ClientApp/src/Pages/Auth/Login.svelte"]           = LoginPage(opts);
+            files["ClientApp/src/Pages/Auth/Register.svelte"]        = RegisterPage(opts);
+            files["ClientApp/src/Pages/Dashboard.svelte"]            = DashboardPage(opts);
+            files["ClientApp/src/Pages/Profile/Edit.svelte"]         = ProfileEditPage(opts);
+            files["ClientApp/src/Pages/Admin/Users.svelte"]          = AdminUsersPage(opts);
+            files["ClientApp/src/Pages/Errors/Forbidden.svelte"]     = ForbiddenPage();
+            files["ClientApp/src/Pages/Errors/ServerError.svelte"]   = ServerErrorPage();
         }
         else
         {
             files["ClientApp/src/layouts/AppLayout.svelte"] = SimpleAppLayout(opts);
-            files["ClientApp/src/pages/Home.svelte"]        = HomePage(opts);
+            files["ClientApp/src/Pages/Home.svelte"]        = HomePage(opts);
         }
 
         return files;
@@ -247,13 +247,13 @@ import AppLayout from './layouts/AppLayout.svelte'
 
 createInertiaApp({
   resolve: (name: string) => {
-    const pages = import.meta.glob('./pages/**/*.svelte', { eager: true }) as Record<string, { default: object }>
-    const page = pages[`./pages/${name}.svelte`]
+    const pages = import.meta.glob('./Pages/**/*.svelte', { eager: true }) as Record<string, { default: object }>
+    const page = pages[`./Pages/${name}.svelte`]
 
     if (!page)
-      throw new Error(`Inertia page not found: ./pages/${name}.svelte`)
+      throw new Error(`Inertia page not found: ./Pages/${name}.svelte`)
 
-    return { default: page.default, layout: (page.default as any).layout ?? AppLayout }
+    return { default: page.default, layout: (page as any).layout ?? AppLayout }
   },
 
   title: (title) => (title ? `${title} – {{opts.ProjectName}}` : '{{opts.ProjectName}}'),
@@ -403,10 +403,11 @@ export { default as Input } from './input.svelte'
 <script lang="ts">
   import type { HTMLInputAttributes } from 'svelte/elements'
   import { cn } from '$lib/utils'
-  let { class: className, ...restProps }: HTMLInputAttributes = $props()
+  let { class: className, value = $bindable(''), ...restProps }: HTMLInputAttributes = $props()
 </script>
 
 <input
+  bind:value
   class={cn(
     'flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50',
     className
@@ -493,7 +494,7 @@ export { default as Separator } from './separator.svelte'
   let { children } = $props()
 
   const page = usePage()
-  const auth = $derived((page.props as any).auth)
+  const auth = $derived((page.props as any)?.auth)
   const user = $derived(auth?.user)
   const permissions = $derived(auth?.permissions)
   const initials = $derived(user?.fullName?.split(' ').map((n: string) => n[0]).join('').toUpperCase() ?? '?')
@@ -606,15 +607,17 @@ export { default as Separator } from './separator.svelte'
     // ── Pages ─────────────────────────────────────────────────────────────────
 
     private static string LoginPage(ProjectOptions opts) => $$"""
+<script module>
+  import GuestLayout from '@/layouts/GuestLayout.svelte'
+  export const layout = GuestLayout
+</script>
+
 <script lang="ts">
   import { router } from '@inertiajs/svelte'
-  import GuestLayout from '@/layouts/GuestLayout.svelte'
   import { Button } from '$lib/components/ui/button'
   import { Card } from '$lib/components/ui/card'
   import { Input } from '$lib/components/ui/input'
   import { Label } from '$lib/components/ui/label'
-
-  export const layout = GuestLayout
 
   let { errors = {} }: { errors?: Record<string, string> } = $props()
 
@@ -669,15 +672,17 @@ export { default as Separator } from './separator.svelte'
 """;
 
     private static string RegisterPage(ProjectOptions opts) => $$"""
+<script module>
+  import GuestLayout from '@/layouts/GuestLayout.svelte'
+  export const layout = GuestLayout
+</script>
+
 <script lang="ts">
   import { router } from '@inertiajs/svelte'
-  import GuestLayout from '@/layouts/GuestLayout.svelte'
   import { Button } from '$lib/components/ui/button'
   import { Card } from '$lib/components/ui/card'
   import { Input } from '$lib/components/ui/input'
   import { Label } from '$lib/components/ui/label'
-
-  export const layout = GuestLayout
 
   let { errors = {} }: { errors?: Record<string, string> } = $props()
 
