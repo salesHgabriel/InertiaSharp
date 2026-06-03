@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useForm, Link } from '@inertiajs/vue3'
+import { useForm, Link, Head } from '@inertiajs/vue3'
 import GuestLayout from '@/Layouts/GuestLayout.vue'
 import { Button } from '@/components/ui/button'
 import { Input }  from '@/components/ui/input'
@@ -33,6 +33,7 @@ function err(field: string) {
 </script>
 
 <template>
+  <Head title="Register" />
   <Card class="w-full">
     <CardHeader class="space-y-1">
       <CardTitle class="text-2xl">Create an account</CardTitle>

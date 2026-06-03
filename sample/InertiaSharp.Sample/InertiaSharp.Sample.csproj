@@ -33,6 +33,8 @@
     <_ContentIncludedByDefault Remove="ClientApp\package-lock.json" />
     <_ContentIncludedByDefault Remove="ClientApp\package.json" />
     <_ContentIncludedByDefault Remove="ClientApp\tsconfig.json" />
+    <_ContentIncludedByDefault Remove="wwwroot\dist\app.css" />
+    <_ContentIncludedByDefault Remove="wwwroot\dist\app.js" />
   </ItemGroup>
 
   <!--

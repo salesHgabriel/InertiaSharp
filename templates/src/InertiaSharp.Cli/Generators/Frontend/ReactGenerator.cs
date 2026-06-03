@@ -65,7 +65,7 @@ public static class ReactGenerator
     "preview": "vite preview"
   },
   "dependencies": {
-    "@inertiajs/react": "^2.0.0",
+    "@inertiajs/react": "^3.0.0",
     "@radix-ui/react-avatar": "^1.1.2",
     "@radix-ui/react-label": "^2.1.1",
     "@radix-ui/react-separator": "^1.1.0",

@@ -18,7 +18,7 @@ public class InertiaOptions
     public string? Version { get; set; }
 
     /// <summary>
-    /// When true, CSRF tokens are automatically shared as props.
+    /// When true, SSR rendering via the Inertia SSR server is enabled.
     /// </summary>
     public bool SsrEnabled { get; set; } = false;
 

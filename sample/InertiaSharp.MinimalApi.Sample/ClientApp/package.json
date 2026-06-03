@@ -10,7 +10,7 @@
     "ui:add": "npx shadcn-vue@latest add"
   },
   "dependencies": {
-    "@inertiajs/vue3": "^2.0.0",
+    "@inertiajs/vue3": "^3.0.0",
     "@vueuse/core": "^12.0.0",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",

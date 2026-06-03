@@ -23,6 +23,11 @@
     <Folder Include="wwwroot\" />
   </ItemGroup>
 
+  <ItemGroup>
+    <_ContentIncludedByDefault Remove="wwwroot\dist\app.css" />
+    <_ContentIncludedByDefault Remove="wwwroot\dist\app.js" />
+  </ItemGroup>
+
   <Target Name="PublishFrontend" AfterTargets="Build" Condition="'$(Configuration)' == 'Release'">
     <Exec WorkingDirectory="ClientApp" Command="npm ci" />
     <Exec WorkingDirectory="ClientApp" Command="npm run build" />

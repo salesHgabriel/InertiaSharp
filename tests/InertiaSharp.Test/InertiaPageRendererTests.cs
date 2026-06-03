@@ -58,7 +58,7 @@ public class InertiaPageRendererTests
         Assert.Null(result["value"]);
     }
 
-    // ── BuildPage ─────────────────────────────────────────────────────────────
+    // ── BuildPage helpers ─────────────────────────────────────────────────────
 
     private static (HttpRequest request, InertiaService service, InertiaOptions options) CreateDefaults(
         string path = "/",
@@ -71,6 +71,23 @@ public class InertiaPageRendererTests
 
         return (ctx.Request, new InertiaService(), new InertiaOptions());
     }
+
+    private static DefaultHttpContext PartialReloadContext(
+        string path,
+        string component,
+        string partialData,
+        string? partialExcept = null)
+    {
+        var ctx = new DefaultHttpContext();
+        ctx.Request.Path = path;
+        ctx.Request.Headers["X-Inertia-Partial-Component"] = component;
+        ctx.Request.Headers["X-Inertia-Partial-Data"] = partialData;
+        if (partialExcept is not null)
+            ctx.Request.Headers["X-Inertia-Partial-Except"] = partialExcept;
+        return ctx;
+    }
+
+    // ── BuildPage — basic ─────────────────────────────────────────────────────
 
     [Fact]
     public void BuildPage_SetsComponent()
@@ -163,20 +180,177 @@ public class InertiaPageRendererTests
         Assert.False(page.ClearHistory);
     }
 
-    // ── Partial reloads ───────────────────────────────────────────────────────
+    [Fact]
+    public void BuildPage_NoSpecialProps_DeferredAndMergeListsAreEmpty()
+    {
+        var (req, svc, opt) = CreateDefaults();
+        var props = new Dictionary<string, object?> { ["title"] = "Hello" };
+        var page = InertiaPageRenderer.BuildPage(req, "Home", props, svc, opt);
+
+        Assert.Empty(page.DeferredProps);
+        Assert.Empty(page.MergeProps);
+    }
+
+    // ── BuildPage — deferred props (v3) ───────────────────────────────────────
+
+    [Fact]
+    public void BuildPage_DeferredProp_IsExcludedFromProps()
+    {
+        var (req, svc, opt) = CreateDefaults();
+        var props = new Dictionary<string, object?>
+        {
+            ["user"]    = "John",
+            ["reports"] = new InertiaDeferred(() => new[] { "report1" }),
+        };
+
+        var page = InertiaPageRenderer.BuildPage(req, "Dashboard", props, svc, opt);
+
+        Assert.True(page.Props.ContainsKey("user"));
+        Assert.False(page.Props.ContainsKey("reports"));
+    }
+
+    [Fact]
+    public void BuildPage_DeferredProp_AddedToDeferredPropsAsOwnGroup()
+    {
+        var (req, svc, opt) = CreateDefaults();
+        var props = new Dictionary<string, object?>
+        {
+            ["reports"] = new InertiaDeferred(() => "data"),
+        };
+
+        var page = InertiaPageRenderer.BuildPage(req, "Dashboard", props, svc, opt);
+
+        Assert.Single(page.DeferredProps);
+        Assert.Single(page.DeferredProps[0]);
+        Assert.Equal("reports", page.DeferredProps[0][0]);
+    }
+
+    [Fact]
+    public void BuildPage_MultipleDeferredProps_EachInOwnGroup()
+    {
+        var (req, svc, opt) = CreateDefaults();
+        var props = new Dictionary<string, object?>
+        {
+            ["a"] = new InertiaDeferred(() => 1),
+            ["b"] = new InertiaDeferred(() => 2),
+            ["c"] = new InertiaDeferred(() => 3),
+        };
+
+        var page = InertiaPageRenderer.BuildPage(req, "Dashboard", props, svc, opt);
+
+        Assert.Equal(3, page.DeferredProps.Count);
+        // each group has exactly one key
+        Assert.All(page.DeferredProps, group => Assert.Single(group));
+        var keys = page.DeferredProps.SelectMany(g => g).ToHashSet();
+        Assert.Contains("a", keys);
+        Assert.Contains("b", keys);
+        Assert.Contains("c", keys);
+    }
+
+    [Fact]
+    public void BuildPage_DeferredProp_FactoryNotCalledOnInitialRender()
+    {
+        var (req, svc, opt) = CreateDefaults();
+        int callCount = 0;
+        var props = new Dictionary<string, object?>
+        {
+            ["data"] = new InertiaDeferred(() => { callCount++; return "value"; }),
+        };
+
+        InertiaPageRenderer.BuildPage(req, "Page", props, svc, opt);
+
+        Assert.Equal(0, callCount);
+    }
+
+    // ── BuildPage — merge props (v3) ──────────────────────────────────────────
+
+    [Fact]
+    public void BuildPage_MergeProp_IsIncludedInProps()
+    {
+        var (req, svc, opt) = CreateDefaults();
+        var items = new[] { "item1", "item2" };
+        var props = new Dictionary<string, object?>
+        {
+            ["feed"] = new InertiaMerge(items),
+        };
+
+        var page = InertiaPageRenderer.BuildPage(req, "Feed", props, svc, opt);
+
+        Assert.True(page.Props.ContainsKey("feed"));
+        Assert.Same(items, page.Props["feed"]);
+    }
+
+    [Fact]
+    public void BuildPage_MergeProp_KeyAddedToMergeProps()
+    {
+        var (req, svc, opt) = CreateDefaults();
+        var props = new Dictionary<string, object?>
+        {
+            ["feed"] = new InertiaMerge(new[] { "a", "b" }),
+        };
+
+        var page = InertiaPageRenderer.BuildPage(req, "Feed", props, svc, opt);
+
+        Assert.Single(page.MergeProps);
+        Assert.Equal("feed", page.MergeProps[0]);
+    }
+
+    [Fact]
+    public void BuildPage_MultipleMergeProps_AllKeysInMergeProps()
+    {
+        var (req, svc, opt) = CreateDefaults();
+        var props = new Dictionary<string, object?>
+        {
+            ["posts"]    = new InertiaMerge(new[] { "p1" }),
+            ["comments"] = new InertiaMerge(new[] { "c1" }),
+        };
+
+        var page = InertiaPageRenderer.BuildPage(req, "Feed", props, svc, opt);
+
+        Assert.Equal(2, page.MergeProps.Count);
+        Assert.Contains("posts", page.MergeProps);
+        Assert.Contains("comments", page.MergeProps);
+    }
+
+    [Fact]
+    public void BuildPage_MergeProp_NotAddedToDeferredProps()
+    {
+        var (req, svc, opt) = CreateDefaults();
+        var props = new Dictionary<string, object?>
+        {
+            ["feed"] = new InertiaMerge("data"),
+        };
+
+        var page = InertiaPageRenderer.BuildPage(req, "Feed", props, svc, opt);
+
+        Assert.Empty(page.DeferredProps);
+    }
+
+    [Fact]
+    public void BuildPage_RegularProp_NotAddedToMergeOrDeferredProps()
+    {
+        var (req, svc, opt) = CreateDefaults();
+        var props = new Dictionary<string, object?>
+        {
+            ["title"] = "Hello",
+        };
+
+        var page = InertiaPageRenderer.BuildPage(req, "Home", props, svc, opt);
+
+        Assert.Empty(page.DeferredProps);
+        Assert.Empty(page.MergeProps);
+    }
+
+    // ── BuildPage — partial reloads ───────────────────────────────────────────
 
     [Fact]
     public void BuildPage_PartialReload_OnlyIncludesRequestedProps()
     {
-        var ctx = new DefaultHttpContext();
-        ctx.Request.Path = "/dashboard";
-        ctx.Request.Headers["X-Inertia-Partial-Component"] = "Dashboard";
-        ctx.Request.Headers["X-Inertia-Partial-Data"] = "title";
-
+        var ctx = PartialReloadContext("/dashboard", "Dashboard", "title");
         var componentProps = new Dictionary<string, object?>
         {
             ["title"] = "Dashboard",
-            ["user"] = "John",
+            ["user"]  = "John",
             ["stats"] = new { count = 10 },
         };
 
@@ -190,12 +364,9 @@ public class InertiaPageRendererTests
     [Fact]
     public void BuildPage_PartialReload_AlwaysIncludesErrors()
     {
-        var ctx = new DefaultHttpContext();
-        ctx.Request.Path = "/dashboard";
-        ctx.Request.Headers["X-Inertia-Partial-Component"] = "Dashboard";
-        ctx.Request.Headers["X-Inertia-Partial-Data"] = "title";
-
+        var ctx = PartialReloadContext("/dashboard", "Dashboard", "title");
         var componentProps = new Dictionary<string, object?> { ["title"] = "Dashboard" };
+
         var page = InertiaPageRenderer.BuildPage(ctx.Request, "Dashboard", componentProps, new InertiaService(), new InertiaOptions());
 
         Assert.True(page.Props.ContainsKey("errors"));
@@ -204,15 +375,11 @@ public class InertiaPageRendererTests
     [Fact]
     public void BuildPage_PartialReload_MultipleRequestedKeys()
     {
-        var ctx = new DefaultHttpContext();
-        ctx.Request.Path = "/dashboard";
-        ctx.Request.Headers["X-Inertia-Partial-Component"] = "Dashboard";
-        ctx.Request.Headers["X-Inertia-Partial-Data"] = "title,user";
-
+        var ctx = PartialReloadContext("/dashboard", "Dashboard", "title,user");
         var componentProps = new Dictionary<string, object?>
         {
             ["title"] = "Dashboard",
-            ["user"] = "John",
+            ["user"]  = "John",
             ["stats"] = new { count = 10 },
         };
 
@@ -226,15 +393,11 @@ public class InertiaPageRendererTests
     [Fact]
     public void BuildPage_PartialReload_DifferentComponent_IncludesAllProps()
     {
-        var ctx = new DefaultHttpContext();
-        ctx.Request.Path = "/dashboard";
-        ctx.Request.Headers["X-Inertia-Partial-Component"] = "OtherComponent";
-        ctx.Request.Headers["X-Inertia-Partial-Data"] = "title";
-
+        var ctx = PartialReloadContext("/dashboard", "OtherComponent", "title");
         var componentProps = new Dictionary<string, object?>
         {
             ["title"] = "Dashboard",
-            ["user"] = "John",
+            ["user"]  = "John",
         };
 
         var page = InertiaPageRenderer.BuildPage(ctx.Request, "Dashboard", componentProps, new InertiaService(), new InertiaOptions());
@@ -254,7 +417,7 @@ public class InertiaPageRendererTests
         var componentProps = new Dictionary<string, object?>
         {
             ["title"] = "Dashboard",
-            ["user"] = "John",
+            ["user"]  = "John",
         };
 
         var page = InertiaPageRenderer.BuildPage(ctx.Request, "Dashboard", componentProps, new InertiaService(), new InertiaOptions());
@@ -263,7 +426,75 @@ public class InertiaPageRendererTests
         Assert.True(page.Props.ContainsKey("user"));
     }
 
-    // ── Except header ─────────────────────────────────────────────────────────
+    // ── BuildPage — partial reload resolving deferred props (v3) ─────────────
+
+    [Fact]
+    public void BuildPage_PartialReload_DeferredProp_IsResolvedAndIncluded()
+    {
+        var ctx = PartialReloadContext("/dashboard", "Dashboard", "reports");
+        var expected = new[] { "report1", "report2" };
+        var componentProps = new Dictionary<string, object?>
+        {
+            ["user"]    = "John",
+            ["reports"] = new InertiaDeferred(() => expected),
+        };
+
+        var page = InertiaPageRenderer.BuildPage(ctx.Request, "Dashboard", componentProps, new InertiaService(), new InertiaOptions());
+
+        Assert.True(page.Props.ContainsKey("reports"));
+        Assert.Same(expected, page.Props["reports"]);
+        Assert.False(page.Props.ContainsKey("user"));
+    }
+
+    [Fact]
+    public void BuildPage_PartialReload_DeferredProp_FactoryCalledExactlyOnce()
+    {
+        var ctx = PartialReloadContext("/dashboard", "Dashboard", "reports");
+        int callCount = 0;
+        var componentProps = new Dictionary<string, object?>
+        {
+            ["reports"] = new InertiaDeferred(() => { callCount++; return "data"; }),
+        };
+
+        InertiaPageRenderer.BuildPage(ctx.Request, "Dashboard", componentProps, new InertiaService(), new InertiaOptions());
+
+        Assert.Equal(1, callCount);
+    }
+
+    [Fact]
+    public void BuildPage_PartialReload_MergeProp_ResolvedWithMergeFlagSet()
+    {
+        var ctx = PartialReloadContext("/feed", "Feed", "posts");
+        var newItems = new[] { "post3", "post4" };
+        var componentProps = new Dictionary<string, object?>
+        {
+            ["posts"] = new InertiaMerge(newItems),
+        };
+
+        var page = InertiaPageRenderer.BuildPage(ctx.Request, "Feed", componentProps, new InertiaService(), new InertiaOptions());
+
+        Assert.True(page.Props.ContainsKey("posts"));
+        Assert.Same(newItems, page.Props["posts"]);
+        Assert.Contains("posts", page.MergeProps);
+    }
+
+    [Fact]
+    public void BuildPage_PartialReload_UnrequestedDeferredProp_NotResolved()
+    {
+        var ctx = PartialReloadContext("/dashboard", "Dashboard", "user");
+        int callCount = 0;
+        var componentProps = new Dictionary<string, object?>
+        {
+            ["user"]    = "John",
+            ["reports"] = new InertiaDeferred(() => { callCount++; return "data"; }),
+        };
+
+        InertiaPageRenderer.BuildPage(ctx.Request, "Dashboard", componentProps, new InertiaService(), new InertiaOptions());
+
+        Assert.Equal(0, callCount);
+    }
+
+    // ── BuildPage — except header ─────────────────────────────────────────────
 
     [Fact]
     public void BuildPage_ExceptHeader_ExcludesSpecifiedProp()
@@ -274,7 +505,7 @@ public class InertiaPageRendererTests
 
         var componentProps = new Dictionary<string, object?>
         {
-            ["title"] = "Dashboard",
+            ["title"]     = "Dashboard",
             ["heavyData"] = new { big = "object" },
         };
 
@@ -293,9 +524,9 @@ public class InertiaPageRendererTests
 
         var componentProps = new Dictionary<string, object?>
         {
-            ["title"] = "Dashboard",
+            ["title"]     = "Dashboard",
             ["heavyData"] = "big",
-            ["metrics"] = "lots",
+            ["metrics"]   = "lots",
         };
 
         var page = InertiaPageRenderer.BuildPage(ctx.Request, "Dashboard", componentProps, new InertiaService(), new InertiaOptions());
@@ -303,5 +534,26 @@ public class InertiaPageRendererTests
         Assert.True(page.Props.ContainsKey("title"));
         Assert.False(page.Props.ContainsKey("heavyData"));
         Assert.False(page.Props.ContainsKey("metrics"));
+    }
+
+    [Fact]
+    public void BuildPage_ExceptHeader_DeferredPropExcepted_NotInDeferredPropsEither()
+    {
+        var ctx = new DefaultHttpContext();
+        ctx.Request.Path = "/dashboard";
+        ctx.Request.Headers["X-Inertia-Partial-Except"] = "reports";
+
+        var componentProps = new Dictionary<string, object?>
+        {
+            ["title"]   = "Dashboard",
+            ["reports"] = new InertiaDeferred(() => "data"),
+        };
+
+        var page = InertiaPageRenderer.BuildPage(ctx.Request, "Dashboard", componentProps, new InertiaService(), new InertiaOptions());
+
+        Assert.True(page.Props.ContainsKey("title"));
+        Assert.False(page.Props.ContainsKey("reports"));
+        // excepted deferred props are also removed from the deferred groups
+        Assert.Empty(page.DeferredProps);
     }
 }

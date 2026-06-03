@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { useForm } from '@inertiajs/vue3'
+import { useForm, Head } from '@inertiajs/vue3'
 import { Button } from '@/components/ui/button'
 import { Input }  from '@/components/ui/input'
 import { Label }  from '@/components/ui/label'
@@ -105,6 +105,7 @@ function err(form: typeof profileForm | typeof passwordForm, field: string) {
 </script>
 
 <template>
+  <Head title="Profile" />
   <div class="flex-1 space-y-6 p-8 max-w-2xl">
     <div>
       <h1 class="text-3xl font-bold tracking-tight">Profile settings</h1>

@@ -24,9 +24,12 @@ public class InertiaTagHelper : TagHelper
     {
         var pageJson = ViewContext.ViewData["InertiaPage"] as string ?? "{}";
 
+        // Inertia.js v3 reads page data from a <script type="application/json"> tag.
+        output.PreElement.SetHtmlContent(
+            $"<script data-page=\"app\" type=\"application/json\">{pageJson}</script>");
+
         output.TagName = "div";
         output.Attributes.SetAttribute("id", "app");
-        output.Attributes.SetAttribute("data-page", pageJson);
         output.TagMode = TagMode.StartTagAndEndTag;
     }
 }

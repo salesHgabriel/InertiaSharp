@@ -13,7 +13,7 @@ namespace InertiaSharp;
 ///
 /// Usage in Minimal APIs:
 /// <code>
-/// app.MapGet("/dashboard", async (InertiaService inertia, ClaimsPrincipal user) =>
+/// app.MapGet("/dashboard", (InertiaService inertia, ClaimsPrincipal user) =>
 /// {
 ///     inertia.Share("auth", new { name = user.Identity!.Name });
 ///     return Results.Extensions.Inertia("Dashboard", new { message = "Hello!" });
@@ -24,8 +24,8 @@ public sealed class InertiaHttpResult : IResult
 {
     private readonly string _component;
     private readonly IDictionary<string, object?> _props;
-    private readonly bool _encryptHistory;
-    private readonly bool _clearHistory;
+    private bool _encryptHistory;
+    private bool _clearHistory;
 
     public InertiaHttpResult(
         string component,
@@ -37,6 +37,20 @@ public sealed class InertiaHttpResult : IResult
         _props          = props;
         _encryptHistory = encryptHistory;
         _clearHistory   = clearHistory;
+    }
+
+    /// <summary>Encrypt the browser history entry for this page (Inertia.js v3+).</summary>
+    public InertiaHttpResult WithEncryptedHistory()
+    {
+        _encryptHistory = true;
+        return this;
+    }
+
+    /// <summary>Clear the browser history stack on this navigation (Inertia.js v3+).</summary>
+    public InertiaHttpResult WithClearHistory()
+    {
+        _clearHistory = true;
+        return this;
     }
 
     public Task ExecuteAsync(HttpContext httpContext)
