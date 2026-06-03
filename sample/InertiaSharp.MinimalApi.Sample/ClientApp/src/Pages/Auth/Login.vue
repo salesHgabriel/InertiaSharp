@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { ref } from 'vue'
-import { useForm, Link } from '@inertiajs/vue3'
+import { useForm, Link, Head } from '@inertiajs/vue3'
 import GuestLayout from '@/Layouts/GuestLayout.vue'
 import { Button }   from '@/components/ui/button'
 import { Input }    from '@/components/ui/input'
@@ -30,6 +30,7 @@ function submit() {
 </script>
 
 <template>
+  <Head title="Login" />
   <Card class="w-full">
     <CardHeader class="space-y-1">
       <CardTitle class="text-2xl">Sign in</CardTitle>

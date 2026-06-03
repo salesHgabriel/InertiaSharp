@@ -57,6 +57,7 @@ public static class ProjectGenerator
         AnsiConsole.MarkupLine("[bold]Next steps:[/]");
         AnsiConsole.MarkupLine($"  [grey]cd[/] [white]{opts.ProjectName}[/]");
         AnsiConsole.MarkupLine($"  [grey]bash[/] [white]dotnet build[/]");
+        AnsiConsole.MarkupLine($"  [grey]bash[/] [white]dotnet ef migrations add InitialCreate[/]");
 
         if (opts.IncludeAuth)
         {
@@ -78,7 +79,17 @@ public static class ProjectGenerator
 
         // Project file
         WriteFile(root, $"{opts.ProjectName}.csproj", CsprojGenerator.Generate(opts));
-
+        
+        // Create solution
+        RunProcessAsync("dotnet", $"new sln -n {opts.ProjectName}", opts.OutputDirectory).GetAwaiter().GetResult();
+        
+        // Add project in solution
+        var csprojPath = Path.Combine(
+            opts.OutputDirectory,
+            $"{opts.ProjectName}.csproj"
+        );
+        RunProcessAsync("dotnet", $"sln {opts.ProjectName}.sln add {csprojPath}", opts.OutputDirectory).GetAwaiter().GetResult();
+        
         // appsettings
         WriteFile(root, "appsettings.json",             SharedBackendGenerator.AppSettings(opts));
         WriteFile(root, "appsettings.Development.json", SharedBackendGenerator.AppSettingsDev(opts));

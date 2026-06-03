@@ -68,7 +68,7 @@ public static class SvelteGenerator
     "preview": "vite preview"
   },
   "dependencies": {
-    "@inertiajs/svelte": "^2.0.0",
+    "@inertiajs/svelte": "^3.0.0",
     "bits-ui": "^1.3.4",
     "clsx": "^2.1.1",
     "lucide-svelte": "^0.468.0",

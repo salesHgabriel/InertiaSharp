@@ -1,4 +1,5 @@
 using System.Runtime.CompilerServices;
+using System.Text.Encodings.Web;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.AspNetCore.Mvc.Rendering;
 using Microsoft.AspNetCore.Mvc.ViewFeatures;
@@ -48,6 +49,13 @@ public class InertiaTagHelperTests
         return (context, output);
     }
 
+    private static string GetPreElementHtml(TagHelperOutput output)
+    {
+        using var sw = new StringWriter();
+        output.PreElement.WriteTo(sw, HtmlEncoder.Default);
+        return sw.ToString();
+    }
+
     [Fact]
     public void Process_OutputTagName_IsDiv()
     {
@@ -76,8 +84,10 @@ public class InertiaTagHelperTests
         Assert.Equal("app", output.Attributes["id"].Value.ToString());
     }
 
+    // Inertia.js v3: page data moves from data-page attribute on the div
+    // to a <script type="application/json"> tag in PreElement.
     [Fact]
-    public void Process_SetsDataPageAttribute_FromViewData()
+    public void Process_PreElement_ContainsScriptTagWithPageJson()
     {
         var json = "{\"component\":\"Dashboard\",\"props\":{},\"url\":\"/dashboard\"}";
         var tagHelper = new InertiaTagHelper { ViewContext = CreateViewContext(json) };
@@ -85,18 +95,33 @@ public class InertiaTagHelperTests
 
         tagHelper.Process(ctx, output);
 
-        Assert.Equal(json, output.Attributes["data-page"].Value.ToString());
+        var pre = GetPreElementHtml(output);
+        Assert.Contains("type=\"application/json\"", pre);
+        Assert.Contains("data-page=\"app\"", pre);
+        Assert.Contains(json, pre);
     }
 
     [Fact]
-    public void Process_WhenViewDataHasNoInertiaPage_UsesEmptyObject()
+    public void Process_WhenViewDataHasNoInertiaPage_ScriptContainsEmptyObject()
     {
         var tagHelper = new InertiaTagHelper { ViewContext = CreateViewContext(null) };
         var (ctx, output) = CreateTagHelperArgs();
 
         tagHelper.Process(ctx, output);
 
-        Assert.Equal("{}", output.Attributes["data-page"].Value.ToString());
+        var pre = GetPreElementHtml(output);
+        Assert.Contains("{}", pre);
+    }
+
+    [Fact]
+    public void Process_DivHasNoDataPageAttribute()
+    {
+        var tagHelper = new InertiaTagHelper { ViewContext = CreateViewContext("{}") };
+        var (ctx, output) = CreateTagHelperArgs();
+
+        tagHelper.Process(ctx, output);
+
+        Assert.Null(output.Attributes["data-page"]);
     }
 
     [Fact]
@@ -111,7 +136,7 @@ public class InertiaTagHelperTests
     }
 
     [Fact]
-    public void Process_SetsThreeAttributes_IdAndDataPage()
+    public void Process_DivHasIdAttribute()
     {
         var tagHelper = new InertiaTagHelper { ViewContext = CreateViewContext("{}") };
         var (ctx, output) = CreateTagHelperArgs();
@@ -119,6 +144,5 @@ public class InertiaTagHelperTests
         tagHelper.Process(ctx, output);
 
         Assert.NotNull(output.Attributes["id"]);
-        Assert.NotNull(output.Attributes["data-page"]);
     }
 }

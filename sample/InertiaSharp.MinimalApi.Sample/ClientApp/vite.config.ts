@@ -35,6 +35,13 @@ export default defineConfig({
     strictPort: true,
     cors: { origin: ['https://localhost:5002', 'http://localhost:5003'] },
     hmr: { host: 'localhost', port: 5173 },
+    proxy: {
+      '^(?!/@vite|/@fs|/@id|/__vite|/src/|/.vite/|/node_modules/)': {
+        target,
+        changeOrigin: true,
+        secure: false,
+      },
+    },
   },
   build: {
     outDir: path.resolve(__dirname, '../wwwroot/dist'),

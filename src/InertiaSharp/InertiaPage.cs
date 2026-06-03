@@ -32,4 +32,21 @@ public class InertiaPage
     /// <summary>Whether to clear history on this navigation.</summary>
     [JsonPropertyName("clearHistory")]
     public bool ClearHistory { get; set; }
+
+    /// <summary>
+    /// Groups of prop keys that are deferred (Inertia.js v3+).
+    /// Each inner list is a batch — the client fetches one batch per request.
+    /// Props wrapped with <see cref="InertiaDeferred"/> are placed here and excluded
+    /// from the initial <see cref="Props"/> payload.
+    /// </summary>
+    [JsonPropertyName("deferredProps")]
+    public IList<IList<string>> DeferredProps { get; set; } = [];
+
+    /// <summary>
+    /// Prop keys whose values should be merged into existing client-side state
+    /// on partial reloads, rather than replaced (Inertia.js v3+).
+    /// Props wrapped with <see cref="InertiaMerge"/> are listed here.
+    /// </summary>
+    [JsonPropertyName("mergeProps")]
+    public IList<string> MergeProps { get; set; } = [];
 }

@@ -11,15 +11,17 @@
     <Version>1.1.1</Version>
     <Authors>Gabriel Sales</Authors>
     <Description>
-      ASP.NET Core adapter for Inertia.js — build modern SPAs using Vue, React, or Svelte
-      without building a separate API. Works with ASP.NET Core Identity, cookie auth, and more.
+      ASP.NET Core adapter for Inertia.js v3 — build modern SPAs using Vue, React, or Svelte
+      without building a separate API. Supports deferred props, merge props, history encryption,
+      and all Inertia.js v3 protocol features. Works with ASP.NET Core Identity, cookie auth, and more.
     </Description>
     <PackageTags>inertia;inertiajs;aspnetcore;vue;react;svelte;spa</PackageTags>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <RepositoryUrl>https://github.com/salesHgabriel/InertiaSharp</RepositoryUrl>
     <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
   </PropertyGroup>
-
+  
   <ItemGroup>
     <FrameworkReference Include="Microsoft.AspNetCore.App" />
   </ItemGroup>

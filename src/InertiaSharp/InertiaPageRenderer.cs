@@ -15,7 +15,7 @@ namespace InertiaSharp;
 /// - <see cref="InertiaResult"/> (MVC / Controllers)
 /// - <see cref="InertiaHttpResult"/> (Minimal APIs)
 ///
-/// Handles prop merging, partial reloads, and dispatching between
+/// Handles prop merging, partial reloads, deferred props, and dispatching between
 /// a full HTML response (first visit) and a JSON response (XHR).
 /// </summary>
 internal static class InertiaPageRenderer
@@ -50,17 +50,31 @@ internal static class InertiaPageRenderer
             partialComponent == component &&
             !string.IsNullOrEmpty(partialData);
 
+        var deferredPropGroups = new List<IList<string>>();
+        var mergePropKeys      = new List<string>();
+
         if (isPartialReload)
         {
-            // Only include explicitly requested props
+            // Only include explicitly requested props (handles both regular and deferred)
             var onlyKeys = partialData!
                 .Split(',', StringSplitOptions.RemoveEmptyEntries)
                 .Select(k => k.Trim())
                 .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
             foreach (var (k, v) in componentProps)
-                if (onlyKeys.Contains(k))
-                    mergedProps[k] = v;
+            {
+                if (!onlyKeys.Contains(k)) continue;
+
+                mergedProps[k] = v switch
+                {
+                    InertiaDeferred deferred => deferred.Resolve(),
+                    InertiaMerge    merge    => merge.Value,
+                    _                        => v,
+                };
+
+                if (v is InertiaMerge)
+                    mergePropKeys.Add(k);
+            }
 
             // errors are always included so form state isn't lost
             if (!mergedProps.ContainsKey("errors"))
@@ -75,8 +89,26 @@ internal static class InertiaPageRenderer
                                .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
             foreach (var (k, v) in componentProps)
-                if (!exceptKeys.Contains(k))
-                    mergedProps[k] = v;
+            {
+                if (exceptKeys.Contains(k)) continue;
+
+                switch (v)
+                {
+                    case InertiaDeferred:
+                        // Exclude from initial render; client will fetch via partial reload
+                        deferredPropGroups.Add([k]);
+                        break;
+
+                    case InertiaMerge merge:
+                        mergedProps[k] = merge.Value;
+                        mergePropKeys.Add(k);
+                        break;
+
+                    default:
+                        mergedProps[k] = v;
+                        break;
+                }
+            }
         }
 
         return new InertiaPage
@@ -87,6 +119,8 @@ internal static class InertiaPageRenderer
             Version        = options.Version,
             EncryptHistory = encryptHistory,
             ClearHistory   = clearHistory,
+            DeferredProps  = deferredPropGroups,
+            MergeProps     = mergePropKeys,
         };
     }
 
@@ -112,7 +146,7 @@ internal static class InertiaPageRenderer
                                  .GetRequiredService<Microsoft.Extensions.Options.IOptions<InertiaOptions>>()
                                  .Value;
 
-        var page    = BuildPage(request, component, componentProps, inertia, options, encryptHistory, clearHistory);
+        var page      = BuildPage(request, component, componentProps, inertia, options, encryptHistory, clearHistory);
         var isInertia = request.Headers.ContainsKey("X-Inertia");
 
         response.Headers["Vary"] = "X-Inertia";
@@ -141,7 +175,7 @@ internal static class InertiaPageRenderer
         string viewName,
         string pageJson)
     {
-        var razorEngine    = httpContext.RequestServices.GetRequiredService<IRazorViewEngine>();
+        var razorEngine      = httpContext.RequestServices.GetRequiredService<IRazorViewEngine>();
         var tempDataProvider = httpContext.RequestServices.GetRequiredService<ITempDataProvider>();
 
         // Build a minimal ActionContext — Razor requires one even in Minimal APIs

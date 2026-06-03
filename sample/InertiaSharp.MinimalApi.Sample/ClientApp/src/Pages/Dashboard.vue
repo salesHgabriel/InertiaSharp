@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { Link } from '@inertiajs/vue3'
+import { Link, Head } from '@inertiajs/vue3'
 import {
   Card, CardContent, CardDescription, CardHeader, CardTitle,
 } from '@/components/ui/card'
@@ -30,6 +30,7 @@ const props = defineProps<{
 </script>
 
 <template>
+  <Head title="Dashboard" />
   <div class="flex-1 space-y-6 p-8">
     <!-- Header -->
     <div class="flex items-center justify-between">
